@@ -6,7 +6,8 @@ export class UserSignUpPage extends React.Component {
         displayName:'',
         username:'',
         password:'',
-        passwordRepeat:''
+        passwordRepeat:'',
+        pendingApiCall: false
     };
 
     onChangeDisplayName = (event) => {
@@ -29,39 +30,62 @@ export class UserSignUpPage extends React.Component {
       this.setState({passwordRepeat:value})
     };
 
+    onClickSignUp = () => {
+      const user = {
+          username: this.state.username,
+          displayName: this.state.displayName,
+          password: this.state.password,
+        }
+        this.setState({pendingApiCall: true})
+        this.props.actions.postSignup(user);
+    }
+
     render() {
         return (
-            <div>
-                <h1>Sign Up</h1>
-                <div>
-                    <input placeholder='Your display name'
+            <div className='container'>
+                <h1 className='text-center'>Sign Up</h1>
+                <div className='col-12 mb-3'>
+                    <label>Display Name</label>
+                    <input className='form-control' placeholder='Your display name'
                      value={this.state.displayName}
                      onChange={this.onChangeDisplayName}
                       />
                 </div>
-                <div>
-                    <input placeholder='Your username'
+                <div className='col-12 mb-3'>
+                    <label>UserName</label>
+                    <input className='form-control' placeholder='Your username'
                     value={this.state.username}
                      onChange={this.onChangeUsername}
                     />
                 </div>
-                <div>
-                    <input type='password' placeholder='Your password'
+                <div className='col-12 mb-3'>
+                    <label>Password</label>
+                    <input className='form-control' type='password' placeholder='Your password'
                     value={this.state.password}
                      onChange={this.onChangePassword}
                       />
                 </div>
-                <div>
-                    <input type='password' placeholder='Repeat your password'
+                <div className='col-12 mb-3'>
+                    <label>Repeat Password</label>
+                    <input className='form-control' type='password' placeholder='Repeat your password'
                     value={this.state.passwordRepeat}
                      onChange={this.onChangePasswordRepeat}
                       />
                 </div>
-                <div>
-                    <button>Sign Up</button>
+                <div className='text-center'>
+                    <button className='btn btn-primary' onClick={this.onClickSignUp} disabled={this.state.pendingApiCall}>Sign Up</button>
                 </div>
             </div>
         );
+    }
+}
+
+UserSignUpPage.defaultProps = {
+    actions:{
+        postSignup: () => 
+        new Promise((resolve, reject) =>{
+            resolve({})
+        })
     }
 }
 
