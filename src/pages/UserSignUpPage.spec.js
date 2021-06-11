@@ -1,5 +1,5 @@
 import React from 'react'
-import { cleanup, fireEvent, render } from '@testing-library/react'
+import { cleanup, fireEvent, render, waitFor, waitForDomChange } from '@testing-library/react'
 import '@testing-library/jest-dom/extend-expect'
 import { UserSignUpPage } from './UserSignUpPage'
 
@@ -126,6 +126,7 @@ describe('UserSignUpPage', ()=> {
         expect(passwordInput).toHaveValue('my-password')
         })
 
+
         it('sets the password repeat value into state', ()=>{
         const {queryByPlaceholderText} =  render(<UserSignUpPage/>);
         const passwordRepeat = queryByPlaceholderText('Repeat your password');
@@ -184,5 +185,58 @@ describe('UserSignUpPage', ()=> {
   
   })
 
+  it('displeys spinner when there is ongoing api call', ()=>{
+      const actions = {
+        postSignup: mockAsyncDelay()
+      }
+      const {queryByText} = setupForSubmit({actions})
+    
+    fireEvent.click(button);
+    
+    const spinner = queryByText('Loading...')
+    expect(spinner).toBeInTheDocument();
+  
+  })
+
+  xit('hide spinner after api call finishes succesfully', async ()=>{
+      const actions = {
+        postSignup: mockAsyncDelay()
+      }
+      const {queryByText} = setupForSubmit({actions})
+    
+    fireEvent.click(button);
+
+    await waitFor(() => {})
+    
+    const spinner = queryByText('Loading...')
+    expect(spinner).not.toBeInTheDocument();
+  
+  })
+
+   xit('hide spinner after api call finishes with error', async ()=>{
+      const actions = {
+        postSignup: jest.fn().mockImplementation(()=>{
+          return new Promise((resolve, reject) =>{
+            setTimeout(() => {
+              reject({
+                response:{data:{}}
+              });
+            }, 300);
+          })
+        })
+      }
+      const {queryByText} = setupForSubmit({actions})
+    
+    fireEvent.click(button);
+
+    await waitFor(() => {})
+    
+    const spinner = queryByText('Loading...')
+    expect(spinner).not.toBeInTheDocument();
+  
+  })
+
     })
 })
+
+console.error = () =>{}
