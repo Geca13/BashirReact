@@ -1,5 +1,6 @@
 import React from 'react';
 import Input from '../components/Input';
+import ButtonWithProgress from '../components/ButtonWithProgress';
 
 export class UserSignUpPage extends React.Component {
 
@@ -44,11 +45,11 @@ export class UserSignUpPage extends React.Component {
       this.setState({passwordRepeat:value, passwordRepeatConfirmed , errors})
     };
 
-    onClickSignUp = () => {
+    onClickSignup = () => {
       const user = {
           username: this.state.username,
           displayName: this.state.displayName,
-          password: this.state.password,
+          password: this.state.password
 
         }
         this.setState({pendingApiCall: true})
@@ -60,8 +61,9 @@ export class UserSignUpPage extends React.Component {
             if(apiError.response.data && apiError.response.data.validationErrors){
                 errors = {...apiError.response.data.validationErrors}
             }
-            this.state({pendingApiCall:false, errors})
+            this.setState({pendingApiCall:false, errors})
         })
+        
     }
 
     render() {
@@ -103,12 +105,12 @@ export class UserSignUpPage extends React.Component {
                       />
                 </div>
                 <div className='text-center'>
-                    <button className='btn btn-primary' onClick={this.onClickSignUp} disabled={this.state.pendingApiCall || !this.state.passwordRepeatConfirmed}>
-                    {this.state.pendingApiCall && (<div className="spinner-border text-light spinner-border-sm mr-sm-1" >
-                    <span className="sr-only">Loading...</span>
-                   </div>)}
-                    
-                    Sign Up</button>
+                    <ButtonWithProgress onClick={this.onClickSignup}
+                     disabled={this.state.pendingApiCall || !this.state.passwordRepeatConfirmed}
+                    pendingApiCall={this.state.pendingApiCall}
+                    text='Sign Up'
+                    >
+                    </ButtonWithProgress>
                 </div>
             </div>
         );

@@ -1,6 +1,6 @@
 import React from 'react'
-import { cleanup, fireEvent, render, waitFor, waitForDomChange,waitForElement } from '@testing-library/react'
-import '@testing-library/jest-dom/extend-expect'
+import { cleanup, fireEvent, render, waitForElementToBeRemoved } from '@testing-library/react'
+
 import { UserSignUpPage } from './UserSignUpPage'
 
 beforeEach(cleanup);
@@ -67,7 +67,7 @@ describe('UserSignUpPage', ()=> {
           return jest.fn().mockImplementation(() =>{
             return new Promise((resolve, reject) =>{
               setTimeout(() =>{
-  
+                resolve({})
               },300)
             })
           })
@@ -198,60 +198,59 @@ describe('UserSignUpPage', ()=> {
   
   })
 
-  xit('hide spinner after api call finishes succesfully', async ()=>{
+  it('hide spinner after api call finishes succesfully', async ()=>{
       const actions = {
-        postSignup: mockAsyncDelay()
-      }
-      const {queryByText} = setupForSubmit({actions})
-    
-    fireEvent.click(button);
+        postSignup: mockAsyncDelay(),
+      };
+      const { queryByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
 
-    await waitFor(() => {})
-    
-    const spinner = queryByText('Loading...')
-    expect(spinner).not.toBeInTheDocument();
+      const spinner = queryByText('Loading...');
+      await waitForElementToBeRemoved(spinner);
+
+      expect(spinner).not.toBeInTheDocument();
   
   })
 
-   xit('hide spinner after api call finishes with error', async ()=>{
+   it('hide spinner after api call finishes with error', async ()=>{
       const actions = {
-        postSignup: jest.fn().mockImplementation(()=>{
-          return new Promise((resolve, reject) =>{
+        postSignup: jest.fn().mockImplementation(() => {
+          return new Promise((resolve, reject) => {
             setTimeout(() => {
               reject({
-                response:{data:{}}
+                response: { data: {} }
               });
             }, 300);
-          })
-        })
-      }
-      const {queryByText} = setupForSubmit({actions})
-    
-    fireEvent.click(button);
+          });
+        }),
+      };
+      const { queryByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
 
-    await waitFor(() => {})
-    
-    const spinner = queryByText('Loading...')
-    expect(spinner).not.toBeInTheDocument();
+      const spinner = queryByText('Loading...');
+      await waitForElementToBeRemoved(spinner);
+      expect(spinner).not.toBeInTheDocument();
   
   })
 
-  xit('displays validation error for displayName when error is received for the field', async () => {
+  it('displays validation error for displayName when error is received for the field', async () => {
     const actions = {
-      postSignup: jest.fn().mockRejectedValue({
-        response:{
-          data: {
-            validationErrors: {
-              displayName: 'Cannot be null'
-            }
-          }
-        }
-      })
-    }
-   const {queryByText} = setupForSubmit({actions});
-   fireEvent.click(button)
-   const errorMessage= await waitForElement (()=> queryByText('Cannot be null'))
-   expect(errorMessage).toBeInTheDocument();
+        postSignup: jest.fn().mockRejectedValue({
+          response: {
+            data: {
+              validationErrors: {
+                displayName: 'Cannot be null',
+              },
+            },
+          },
+        }),
+      };
+      const { findByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
+
+      const errorMessage = await findByText('Cannot be null');
+
+      expect(errorMessage).toBeInTheDocument();
    
   });
   
@@ -291,69 +290,69 @@ describe('UserSignUpPage', ()=> {
     expect(mismatchWarning).toBeInTheDocument();
   });
 
-  xit('hides the validation error when user changes the value of displayName ', async () => {
+  it('hides the validation error when user changes the value of displayName ', async () => {
     const actions = {
-      postSignup: jest.fn().mockRejectedValue({
-        response:{
-          data: {
-            validationErrors: {
-              displayName: 'Cannot be null'
-            }
-          }
-        }
-      })
-    };
-   const {queryByText} = setupForSubmit({actions});
-   fireEvent.click(button);
+        postSignup: jest.fn().mockRejectedValue({
+          response: {
+            data: {
+              validationErrors: {
+                displayName: 'Cannot be null',
+              },
+            },
+          },
+        }),
+      };
+      const { findByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
 
-   await waitFor (()=> queryByText('Cannot ne null'));
-   fireEvent.change(displayNameInput,changeEvent('name updated'))
-   const errorMessage = queryByText('Cannot ne null')
-   expect(errorMessage).not.toBeInTheDocument();
+      const errorMessage = await findByText('Cannot be null');
+      fireEvent.change(displayNameInput, changeEvent('name updated'));
+
+      expect(errorMessage).not.toBeInTheDocument();
    
   });
 
-  xit('hides the validation error when user changes the value of username ', async () => {
+  it('hides the validation error when user changes the value of username ', async () => {
     const actions = {
-      postSignup: jest.fn().mockRejectedValue({
-        response:{
-          data: {
-            validationErrors: {
-              username: 'Username cannot be null'
-            }
-          }
-        }
-      })
-    };
-   const {queryByText} = setupForSubmit({actions});
-   fireEvent.click(button);
+        postSignup: jest.fn().mockRejectedValue({
+          response: {
+            data: {
+              validationErrors: {
+                username: 'Username cannot be null',
+              },
+            },
+          },
+        }),
+      };
+      const { findByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
 
-   await waitFor (()=> queryByText('Cannot ne null'));
-   fireEvent.change(usernameInput,changeEvent('name updated'))
-   const errorMessage = queryByText('Username cannot ne null')
-   expect(errorMessage).not.toBeInTheDocument();
+      const errorMessage = await findByText('Username cannot be null');
+      fireEvent.change(usernameInput, changeEvent('name updated'));
+
+      expect(errorMessage).not.toBeInTheDocument();
    
   });
 
-  xit('hides the validation error when user changes the value of password ', async () => {
-    const actions = {
-      postSignup: jest.fn().mockRejectedValue({
-        response:{
-          data: {
-            validationErrors: {
-              password: 'Cannot be null'
-            }
-          }
-        }
-      })
-    };
-   const {queryByText} = setupForSubmit({actions});
-   fireEvent.click(button);
+  it('hides the validation error when user changes the value of password ', async () => {
+     const actions = {
+        postSignup: jest.fn().mockRejectedValue({
+          response: {
+            data: {
+              validationErrors: {
+                password: 'Cannot be null',
+              },
+            },
+          },
+        }),
+      };
+      const { findByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
 
-   await waitForElement (()=> queryByText('Cannot be null'));
-   fireEvent.change(passwordInput,changeEvent('updated-password'))
-   const errorMessage = queryByText('Cannot be null')
-   expect(errorMessage).not.toBeInTheDocument();
+      const errorMessage = await findByText('Cannot be null');
+      fireEvent.change(passwordInput, changeEvent('updated-password'));
+
+      expect(errorMessage).not.toBeInTheDocument();
    
   });
 

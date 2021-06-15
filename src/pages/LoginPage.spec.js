@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react'
+import { render, fireEvent  } from '@testing-library/react'
 import { LoginPage } from './LoginPage'
 
 describe('LoginPage' , () =>{
@@ -110,7 +110,83 @@ describe('LoginPage' , () =>{
                 password: 'P4ssword'
             }
             expect(actions.postLogin).toHaveBeenCalledWith(expectedUserObject);
+ 
 
+        });
+
+        it('enables the button when username and password fields are not empty', ()=>{
+            setupForSubmit();
+            expect(button).not.toBeDisabled();
+        });
+
+         it('disable the button when username  field is empty', ()=>{
+            setupForSubmit();
+            fireEvent.change(usernameInput,changeEvent(''))
+            expect(button).toBeDisabled();
+        });
+
+        it('disable the button when password field is empty', ()=>{
+            setupForSubmit();
+            fireEvent.change(passwordInput,changeEvent(''))
+            expect(button).toBeDisabled();
+        });
+
+        it('displays alert when login fails', async ()=>{
+
+            const actions = {
+                postLogin: jest.fn().mockRejectedValue({
+                  response:{
+                    data: {
+                        message: 'Login failed'
+                    }
+                  }
+                })
+            }
+            const { findByText } = setupForSubmit({actions});
+            fireEvent.click(button);
+
+            const alert = await findByText('Login failed');
+            expect(alert).toBeInTheDocument();
+        });
+
+        it('hides the error alert when user changes the username ', async ()=>{
+
+            const actions = {
+                postLogin: jest.fn().mockRejectedValue({
+                  response:{
+                    data: {
+                        message: 'Login failed'
+                    }
+                  }
+                })
+            }
+            const { findByText } = setupForSubmit({actions});
+            fireEvent.click(button);
+
+            const alert = await findByText('Login failed');
+            fireEvent.change(usernameInput, changeEvent('updated-username'));
+             
+            expect(alert).not.toBeInTheDocument();
+        });
+
+        it('hides the error alert when user changes the password ', async ()=>{
+
+            const actions = {
+                postLogin: jest.fn().mockRejectedValue({
+                  response:{
+                    data: {
+                        message: 'Login failed'
+                    }
+                  }
+                })
+            }
+            const { findByText } = setupForSubmit({actions});
+            fireEvent.click(button);
+
+            const alert = await findByText('Login failed');
+            fireEvent.change(passwordInput, changeEvent('updated-P4ssword'));
+             
+            expect(alert).not.toBeInTheDocument();
         });
     });
 
