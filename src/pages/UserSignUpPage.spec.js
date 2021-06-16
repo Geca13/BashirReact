@@ -135,6 +135,7 @@ describe('UserSignUpPage', ()=> {
 
         expect(passwordRepeat).toHaveValue('my-password')
         })
+        
         it('calls postSignup when the fields are valid and the actions are provided in the props', ()=>{
           const actions = {
             postSignup: jest.fn().mockResolvedValueOnce({})

@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, fireEvent  } from '@testing-library/react'
+import { render, fireEvent, waitForElementToBeRemoved  } from '@testing-library/react'
 import { LoginPage } from './LoginPage'
 
 describe('LoginPage' , () =>{
@@ -51,6 +51,16 @@ describe('LoginPage' , () =>{
                 }
             };
         };
+
+         const mockAsyncDelay = () =>{
+          return jest.fn().mockImplementation(() =>{
+            return new Promise((resolve, reject) =>{
+              setTimeout(() =>{
+                resolve({})
+              },300)
+            })
+          })
+        }
 
         let usernameInput, passwordInput, button;
 
@@ -188,7 +198,70 @@ describe('LoginPage' , () =>{
              
             expect(alert).not.toBeInTheDocument();
         });
+
+        it('does not allow user to click the login button when there is ongoing api call', ()=>{
+            const actions = {
+            postLogin: mockAsyncDelay()
+            }
+             setupForSubmit({actions})
+    
+            fireEvent.click(button);
+    
+            fireEvent.click(button);
+            expect(actions.postLogin).toHaveBeenCalledTimes(1);
+  
+            });
+
+        it('displeys spinner when there is ongoing api call', ()=>{
+            const actions = {
+            postLogin: mockAsyncDelay()
+            }
+             const {queryByText} = setupForSubmit({actions})
+    
+            fireEvent.click(button);
+    
+             const spinner = queryByText('Loading...')
+             expect(spinner).toBeInTheDocument();
+  
+            });
+        it('hide spinner after api call finishes succesfully', async ()=>{
+      const actions = {
+        postLogin: mockAsyncDelay(),
+      };
+      const { queryByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
+
+      const spinner = queryByText('Loading...');
+      await waitForElementToBeRemoved(spinner);
+
+      expect(spinner).not.toBeInTheDocument();
+  
+  })
+
+  it('hide spinner after api call finishes with error', async ()=>{
+      const actions = {
+        postLogin: jest.fn().mockImplementation(() => {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              reject({
+                response: { data: {} }
+              });
+            }, 300);
+          });
+        }),
+      };
+      const { queryByText } = setupForSubmit({ actions });
+      fireEvent.click(button);
+
+      const spinner = queryByText('Loading...');
+      await waitForElementToBeRemoved(spinner);
+      expect(spinner).not.toBeInTheDocument();
+  
+  })
+
+
+      });
+
     });
 
-
-});
+    console.error = () =>{}
