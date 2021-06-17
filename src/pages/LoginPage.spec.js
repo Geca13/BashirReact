@@ -257,7 +257,23 @@ describe('LoginPage' , () =>{
       await waitForElementToBeRemoved(spinner);
       expect(spinner).not.toBeInTheDocument();
   
-  })
+  });
+
+  it('redirects to homepage after successful login', async ()=>{
+      const actions = {
+        postLogin: jest.fn().mockResolvedValue({})
+      };
+      const history = {
+        push: jest.fn()
+      }
+      const { queryByText } = setupForSubmit({ actions, history });
+            fireEvent.click(button);
+
+      
+      await waitForElementToBeRemoved(() => queryByText('Loading...'));
+      expect(history.push).toHaveBeenCalledWith('/')
+  
+  });
 
 
       });
