@@ -29,7 +29,7 @@ describe('App' , () =>{
    it('displays only LoginPage when url is /login',()=>{
      
       const { queryByTestId } = setup('/login');
-      expect(queryByTestId('homepage')).not.toBeInTheDocument();
+      expect(queryByTestId('homepage')).not.toBeInTheDocument(); 
    })
 
    it('displays UserSignUpPage when url is /signup',()=>{
@@ -45,13 +45,11 @@ describe('App' , () =>{
       expect(queryByTestId('userpage')).toBeInTheDocument();
    });
 
-   it('displays topbar when url is /',()=>{
-
+   it('displays topBar when url is /', () => {
       const { container } = setup('/');
       const navigation = container.querySelector('nav');
       expect(navigation).toBeInTheDocument();
-
-   });
+    });
 
    it('displays topbar when url is /login',()=>{
 

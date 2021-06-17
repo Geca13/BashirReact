@@ -7,16 +7,22 @@ import { LoginPage } from './pages/LoginPage'
 import * as apiCalls from './api/apiCalls'
 import { HashRouter } from 'react-router-dom';
 import App from './containers/App'
-import { HashRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import authReducer from './redux/authReducer';
+
+const store = createStore(authReducer);
 
 const actions = {
   postSignup: apiCalls.signup
 }
 
 ReactDOM.render(
+  <Provider store={store}>
   <HashRouter>
     <App />
-  </HashRouter>,
+  </HashRouter>
+  </Provider>,
   document.getElementById('root')
 );
 

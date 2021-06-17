@@ -2,12 +2,36 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import TopBar from './TopBar'
 import { MemoryRouter } from 'react-router-dom'
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import authReducer from '../redux/authReducer'
 
-const setup = () =>{
+const loggedInState = {
+   id: 1,
+   username: 'user1',
+   displayName: 'display1',
+   image: 'profile1.png',
+   password:'P4ssword',
+   isLoggedIn: true
+};
+
+const defaultState = {
+   id: 0,
+   username: '',
+   displayName: '',
+   image: '',
+   password:'',
+   isLoggedIn: false
+};
+
+const setup = (state = defaultState) =>{
+   const store = createStore(authReducer, state);
     return render(
+       <Provider store={store}>
        <MemoryRouter >
             <TopBar/>
         </MemoryRouter>
+        </Provider>
     )
 }
 
@@ -18,7 +42,7 @@ describe('TopBar', ()=>{
         it('has application logo', () =>{
            const { container } = setup();
            const image = container.querySelector('img');
-           expect(image.src).toContain('logo192.png');
+           expect(image.src).toContain('hoaxify-logo.png');
         });
 
         it('has link to home from logo', () =>{
@@ -38,6 +62,12 @@ describe('TopBar', ()=>{
            const loginLink = queryByText('Login');
            expect(loginLink.getAttribute('href')).toBe('/login');
         });
+
+        it('has link to logout when user is logged in ', () =>{
+         const { queryByText } = setup(loggedInState);
+         const logoutLink = queryByText('Logout');
+         expect(logoutLink.getAttribute('href')).toBeInTheDocument();
+      });
     
     });
 
