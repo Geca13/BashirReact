@@ -8,14 +8,16 @@ import * as apiCalls from './api/apiCalls'
 import { HashRouter } from 'react-router-dom';
 import App from './containers/App'
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import authReducer from './redux/authReducer';
+import logger from 'redux-logger';
 
-const store = createStore(authReducer);
 
-const actions = {
-  postSignup: apiCalls.signup
-}
+
+
+const store = createStore(authReducer,applyMiddleware(logger));
+
+
 
 ReactDOM.render(
   <Provider store={store}>

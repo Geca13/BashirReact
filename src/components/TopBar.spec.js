@@ -66,7 +66,13 @@ describe('TopBar', ()=>{
         it('has link to logout when user is logged in ', () =>{
          const { queryByText } = setup(loggedInState);
          const logoutLink = queryByText('Logout');
-         expect(logoutLink.getAttribute('href')).toBeInTheDocument();
+         expect(logoutLink).toBeInTheDocument();
+      });
+
+      it('has link to user profile when user is logged in ', () =>{
+         const { queryByText } = setup(loggedInState);
+         const profileLink = queryByText('My Profile');
+         expect(profileLink.getAttribute('href')).toBe('/user1');
       });
     
     });

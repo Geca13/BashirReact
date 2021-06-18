@@ -21,8 +21,13 @@ class TopBar extends React.Component {
       if(this.props.user.isLoggedIn){
         links = (
           <ul className ='nav navbar-nav ml-auto'>
-                      <li className= 'nav-item'>
+                      <li className= 'nav-item nav-link'>
                          Logout
+                      </li>
+                      <li className= 'nav-item'>
+                         <Link to={`/${this.props.user.username}`} className='nav-link'>
+                             My Profile
+                         </Link>
                       </li>
                   </ul>
         )
