@@ -52,4 +52,5 @@ return {
 }
 }
 
+
 export default connect(mapStateToProps)(TopBar);

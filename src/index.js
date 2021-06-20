@@ -9,6 +9,7 @@ import { HashRouter } from 'react-router-dom';
 import App from './containers/App'
 import { Provider } from 'react-redux';
 import configureStore from './redux/configureStore';
+import thunk from 'redux-thunk'
 
 
 
