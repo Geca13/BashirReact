@@ -4,7 +4,7 @@ import UserListItem from './UserListItem';
 
 class UserList extends Component {
 
-    state = {
+    state = { 
         page: {
             content: [],
             number: 0,
@@ -17,13 +17,24 @@ class UserList extends Component {
     }
 
     loadData = (requestedPage = 0) => {
-      apiCalls.listUsers({page: requestedPage , size: this.state.page.size}).then((response)=>{
-            this.setState({page: response.data})
+      apiCalls.listUsers({page: requestedPage , size: this.state.page.size})
+      .then((response)=>{
+       this.setState({
+           page: response.data,
+           loadError: undefined
         });
-    }
+        })
+        .catch(error =>{
+            this.setState({loadError: 'User load failed'})
+        })
+    };
 
     onClickNext = () => {
         this.loadData(this.state.page.number + 1)
+    }
+
+    onClickPrevious = () => {
+        this.loadData(this.state.page.number - 1)
     }
 
     render() {
@@ -39,9 +50,11 @@ class UserList extends Component {
                         })
                     }
                 </div>
-                <div>
-                    <span className='badge badge-light' onClick={this.onClickNext}>next &gt;</span> 
+                <div className='clearfix'>
+                    {!this.state.page.first && <span style={{cursor:'pointer'}} onClick={this.onClickPrevious} className='  float-left'> previous</span>}
+                   {!this.state.page.last && <span className=' float-right' style={{cursor:'pointer'}} onClick={this.onClickNext}>next</span> }
                 </div>
+                {this.state.loadError && <span className='text-center text-danger'>{this.state.loadError}</span>}
             </div>
         );
     }
