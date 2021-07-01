@@ -35,7 +35,6 @@ describe('apiCalls', ()=>{
       apiCalls.listUsers();
       expect(mockListUsers).toBeCalledWith('/api/1.0/users?page=0&size=3');
     });
-    });
 
     it('calls /api/1.0/users?page=5&size=10 when coresponding param are provided for listUsers', () => {
         const mockListUsers = jest.fn();
@@ -57,6 +56,16 @@ describe('apiCalls', ()=>{
         apiCalls.listUsers({size: 5});
         expect(mockListUsers).toBeCalledWith('/api/1.0/users?page=0&size=5');
       });
+    });
+
+    describe('getUser', ()=>{
+      it('calls /api/1.0/users/user5 when user5 is provided for getUser request', ()=>{
+      const mockGetUser = jest.fn();
+      axios.get = mockGetUser;
+      apiCalls.getUser('user5');
+      expect(mockGetUser).toBeCalledWith('/api/1.0/users/user5');
+    })
+    })
 
 
 
