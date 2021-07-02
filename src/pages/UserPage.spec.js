@@ -135,6 +135,14 @@ const setUserOneLoggedInStorage = () => {
       return rendered;
     };
 
+    const mockDelayedUpdateSuccess = () => {
+       return jest.fn().mockImplementation(() => {
+         return new Promise((resolve, reject) => {
+            resolve(mockSuccessUpdateUser)
+         },300)
+       })
+    }
+
          it('displays edit layout when clicking on the edit button', async ()=>{
            const { queryByText } = await setupForEdit();
            expect(queryByText('Save')).toBeInTheDocument();
@@ -184,6 +192,81 @@ const setUserOneLoggedInStorage = () => {
            const editButtonAfterClickingSave = await findByText('Edit')
            expect(editButtonAfterClickingSave).toBeInTheDocument();
         })
+
+        it('returns to original displayName after it is changed in edit mode but canceled', async ()=>{
+         const { queryByText, container } = await setupForEdit();
+         const displayInput = container.querySelector('input');
+         fireEvent.change(displayInput, {target: {value: 'display1-update'}})
+         const cancelButton = queryByText('Cancel')
+         fireEvent.click(cancelButton);
+         const originalDisplayName = queryByText('display1@user1')
+         expect(originalDisplayName).toBeInTheDocument();
+      })
+
+      it('returns to last updated displayName when displayName is changed for another time but canceled', async ()=>{
+         const { queryByText, container , findByText } = await setupForEdit();
+         let displayInput = container.querySelector('input');
+         fireEvent.change(displayInput, {target: {value: 'display1-update'}})
+
+         apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           const editButtonAfterClickingSave = await findByText('Edit');
+           fireEvent.click(editButtonAfterClickingSave);
+           displayInput = container.querySelector('input');
+           fireEvent.change(displayInput, {target: {value: 'display1-update-second-time'}})
+         const cancelButton = queryByText('Cancel')
+         fireEvent.click(cancelButton);
+         const lastSavedData = container.querySelector('h4')
+         
+         expect(lastSavedData).toHaveTextContent('display1-update@user1');
+      })
+
+      it('displays spinner when there is updateUser api call', async ()=>{
+         const { queryByText, findByText } = await setupForEdit();
+         apiCalls.updateUser = mockDelayedUpdateSuccess();
+         const saveButton = queryByText('Save')
+         fireEvent.click(saveButton);
+         const spinner = queryByText('Loading...')
+         expect(spinner).toBeInTheDocument();
+      })
+
+      it('disables save button when there is updateUser api call', async ()=>{
+         const { queryByText } = await setupForEdit();
+         apiCalls.updateUser = mockDelayedUpdateSuccess();
+         const saveButton = queryByText('Save')
+         fireEvent.click(saveButton);
+         
+         expect(saveButton).toBeDisabled();
+      })
+
+      it('disables cancel button when there is updateUser api call', async ()=>{
+         const { queryByText } = await setupForEdit();
+         apiCalls.updateUser = mockDelayedUpdateSuccess();
+         const saveButton = queryByText('Save')
+         fireEvent.click(saveButton);
+         const cancelButton = queryByText('Cancel')
+         expect(cancelButton).toBeDisabled();
+      })
+
+      it('returns to last updated displayName when displayName is changed for another time but canceled', async ()=>{
+         const { queryByText, container , findByText } = await setupForEdit();
+         let displayInput = container.querySelector('input');
+         fireEvent.change(displayInput, {target: {value: 'display1-update'}})
+
+         apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           const editButtonAfterClickingSave = await findByText('Edit');
+           fireEvent.click(editButtonAfterClickingSave);
+           displayInput = container.querySelector('input');
+           fireEvent.change(displayInput, {target: {value: 'display1-update-second-time'}})
+         const cancelButton = queryByText('Cancel')
+         fireEvent.click(cancelButton);
+         const lastSavedData = container.querySelector('h4')
+         
+         expect(lastSavedData).toHaveTextContent('display1-update@user1');
+      })
 
         
     })

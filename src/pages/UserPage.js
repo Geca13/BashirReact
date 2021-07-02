@@ -9,7 +9,9 @@ class UserPage extends React.Component {
         user: undefined,
         userNotFound: false,
         isLoadingUser: false,
-        inEditMode: false
+        inEditMode: false,
+        originalDisplayName: undefined,
+        pendingUpdateCall: false
     };
 
     componentDidMount(){
@@ -45,7 +47,13 @@ class UserPage extends React.Component {
     }
 
     onClickCancel = () => {
+        const user = {...this.state.user}
+        if(this.state.originalDisplayName !== undefined){
+           user.displayName = this.state.originalDisplayName;
+        }
         this.setState ({
+            user,
+            originalDisplayName: undefined,
             inEditMode: false
         })
     }
@@ -55,17 +63,23 @@ class UserPage extends React.Component {
         const userUpdate = {
             displayName: this.state.user.displayName
         }
+        this.setState({pendingUpdateCall: true})
         apiCalls.updateUser(userId, userUpdate).then((response) => {
            this.setState({
-               inEditMode: false
+               inEditMode: false,
+               originalDisplayName: undefined
            })
         })
     }
 
     onChangeDisplayName = (event) => {
         const user = {...this.state.user};
+        let originalDisplayName = this.state.originalDisplayName;
+        if(originalDisplayName === undefined) {
+            originalDisplayName = user.displayName
+        }
         user.displayName = event.target.value;
-        this.setState({user})
+        this.setState({user , originalDisplayName})
     }
 
     render() { 
@@ -98,6 +112,7 @@ class UserPage extends React.Component {
                onClickCancel={this.onClickCancel}
                onClickSave={this.onClickSave}
                onChangeDisplayName={this.onChangeDisplayName}
+               pendingUpdateCall = {this.state.pendingUpdateCall}
                 />
                 )
         }
