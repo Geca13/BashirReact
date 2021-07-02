@@ -1,7 +1,10 @@
 import React from 'react'
-import { render, waitFor } from '@testing-library/react'
+import { render, fireEvent, queryByText, findByText } from '@testing-library/react'
 import UserPage from './UserPage'
 import * as apiCalls from '../api/apiCalls'
+import { Provider } from 'react-redux';
+import configureStore from '../redux/configureStore';
+import axios from 'axios'
 
 const mockSuccessGetUser = {
    data: {
@@ -9,6 +12,15 @@ const mockSuccessGetUser = {
       username: 'user1',
       displayName: 'display1',
       image: 'profile1.png'
+   }
+}
+
+const mockSuccessUpdateUser = {
+   data: {
+      id: 1,
+      username: 'user1',
+      displayName: 'display1-update',
+      image: 'profile1-update.png'
    }
 }
 
@@ -25,9 +37,33 @@ const match = {
    }
 }
 
+beforeEach(()=>{
+   localStorage.clear();
+   delete axios.defaults.headers.common['Authorization'];
+})
+
 const setup = (props) =>{
-   return render(<UserPage {...props}/>)
-}
+   const store = configureStore(false);
+    return render(
+       <Provider store={store} >
+          <UserPage {...props}/>
+       </Provider>
+    )
+};
+
+const setUserOneLoggedInStorage = () => {
+     localStorage.setItem(
+     'hoax-auth',
+      JSON.stringify({
+      id: 1,
+      username: 'user1',
+      displayName: 'display1',
+      image: 'profile1.png',
+      password: 'P4ssword',
+      isLoggedIn: true,
+    })
+  );
+};
 
  describe('UserPage', ()=>{
 
@@ -50,6 +86,27 @@ const setup = (props) =>{
            const alert = await findByText('User not found');
            expect(alert).toBeInTheDocument();
         })
+        it('displays spinner while loading userdata',  ()=>{
+           const mockDelayedResponse = jest.fn().mockImplementation(() =>{
+              return new Promise((resolve , reject) => {
+                 setTimeout(() => {
+                    resolve(mockSuccessGetUser)
+                 }, 300)
+              })
+           })
+           apiCalls.getUser = mockDelayedResponse;
+           const { queryByText } = setup({match});
+           const spinner = queryByText('Loading...')
+           expect(spinner).toBeInTheDocument();
+        })
+        it('displays the edit buttonwhen loggedInUser matches to user in url', async ()=>{
+           setUserOneLoggedInStorage();
+           apiCalls.getUser = jest.fn().mockResolvedValue(mockSuccessGetUser);
+           const { findByText, queryByText } = setup({match});
+           await findByText('display1@user1');
+           const editButton = queryByText('Edit')
+           expect(editButton).toBeInTheDocument();
+        })
     })
 
     describe('Lifecycle',()=>{
@@ -66,4 +123,70 @@ const setup = (props) =>{
            expect(apiCalls.getUser).toHaveBeenCalledWith('user1');
         })
     })
+
+     describe('ProfileCard Interactions',()=>{
+
+       const setupForEdit = async () => {
+      setUserOneLoggedInStorage();
+      apiCalls.getUser = jest.fn().mockResolvedValue(mockSuccessGetUser);
+      const rendered = setup({ match });
+      const editButton = await rendered.findByText('Edit');
+      fireEvent.click(editButton);
+      return rendered;
+    };
+
+         it('displays edit layout when clicking on the edit button', async ()=>{
+           const { queryByText } = await setupForEdit();
+           expect(queryByText('Save')).toBeInTheDocument();
+        })
+
+        it('returns to non edit mode after clicking cancel', async ()=>{
+           const { queryByText } = await setupForEdit();
+           const cancelButton = queryByText('Cancel')
+           fireEvent.click(cancelButton);
+           expect(queryByText('Edit')).toBeInTheDocument();
+        })
+
+        it('calls updateUser api when clicking save', async ()=>{
+           const { queryByText } = await setupForEdit();
+           apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           expect(apiCalls.updateUser).toHaveBeenCalledTimes(1);
+        })
+
+        it('calls updateUser api with user id', async ()=>{
+           const { queryByText } = await setupForEdit();
+           apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           const userId = apiCalls.updateUser.mock.calls[0][0];
+           expect(userId).toBe(1);
+        })
+
+        it('calls updateUser api with request body having changed displayName', async ()=>{
+           const { queryByText, container } = await setupForEdit();
+           apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+
+           const displayInput = container.querySelector('input');
+           fireEvent.change(displayInput, {target: {value: 'display1-update'}})
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           const requestBody = apiCalls.updateUser.mock.calls[0][1];
+           expect(requestBody.displayName).toBe('display1-update');
+        })
+
+        it('returns to non edit mode after successfull api call', async ()=>{
+           const { queryByText, findByText } = await setupForEdit();
+           apiCalls.updateUser = jest.fn().mockResolvedValue(mockSuccessUpdateUser);
+           const saveButton = queryByText('Save')
+           fireEvent.click(saveButton);
+           const editButtonAfterClickingSave = await findByText('Edit')
+           expect(editButtonAfterClickingSave).toBeInTheDocument();
+        })
+
+        
+    })
  })
+
+ console.error = () => {}

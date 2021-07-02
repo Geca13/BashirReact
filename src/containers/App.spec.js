@@ -76,9 +76,9 @@ const changeEvent=(content) =>{
         };
 
    const setUserOneLoggedInStorage = () => {
-  localStorage.setItem(
-    'hoax-auth',
-    JSON.stringify({
+     localStorage.setItem(
+     'hoax-auth',
+      JSON.stringify({
       id: 1,
       username: 'user1',
       displayName: 'display1',

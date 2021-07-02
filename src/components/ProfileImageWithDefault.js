@@ -9,9 +9,9 @@ const ProfileImageWithDefault = (props) => {
     }
     return (
        
-            <img {...props} src={imageSource}  onError={
+            <img {...props} src={props.src || imageSource}  onError={
                 event => {
-                    event.target.src = defaultPicture;
+                    event.target.src = defaultPicture;  
                 }
             }/>
             
