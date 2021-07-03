@@ -67,8 +67,13 @@ class UserPage extends React.Component {
         apiCalls.updateUser(userId, userUpdate).then((response) => {
            this.setState({
                inEditMode: false,
-               originalDisplayName: undefined
+               originalDisplayName: undefined,
+               pendingUpdateCall: false
            })
+        }).catch(error =>{
+            this.setState({
+                pendingUpdateCall: false
+            })
         })
     }
 

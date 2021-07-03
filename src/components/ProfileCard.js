@@ -28,12 +28,12 @@ const ProfileCard = (props) => {
             props.inEditMode && (
                 <div>
                     <ButtonWithProgress className='btn btn-primary'
-                     onClick={props.onClickSave} text={<span><i className='fas fa-save'/>
+                     onClick={props.onClickSave} disabled={props.pendingUpdateCall}  pendingApiCall={props.pendingUpdateCall} text={<span><i className='fas fa-save'/>
                      Save</span>}
-                     pendingApiCall={props.pendingUpdateCall}
-                     disabled={props.pendingUpdateCall}  />
+                    
+                       />
                          
-                    <button className='btn btn-outline-secondary ml-1' onClick={props.onClickCancel} ><i className='fas fa-window-close' disabled={props.pendingUpdateCall} /> Cancel</button>
+                    <button className='btn btn-outline-secondary ml-1' onClick={props.onClickCancel} disabled={props.pendingUpdateCall}  ><i className='fas fa-window-close' /> Cancel</button>
                 </div>
             )
         }
