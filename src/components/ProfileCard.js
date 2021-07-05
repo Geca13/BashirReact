@@ -12,7 +12,7 @@ const ProfileCard = (props) => {
     return (
         <div className='card'>
            <div className='card-header text-center'>
-             <ProfileImageWithDefault alt='profile' width='200' height='200' image={image} className='rounded-circle shadow' />
+             <ProfileImageWithDefault alt='profile' width='200' height='200' src= {props.loadedImage} image={image} className='rounded-circle shadow' />
             </div> 
         <div className='card-body text-center'>
            {!props.inEditMode && <h4> {`${displayName}@${username}`} </h4>}
@@ -20,7 +20,10 @@ const ProfileCard = (props) => {
            <div className= 'mb-2'> 
              <Input value={displayName}
               label={`Change Display Name for ${username}`} 
-              onChange ={props.onChangeDisplayName} />
+              onChange ={props.onChangeDisplayName}
+              hasError={props.errors.displayName && true}
+              error={props.errors.displayName} />
+              <input className='form-control-file mt-2' type='file' onChange= {props.onFileSelection} />
             </div>)}
            {showEditButton &&(
            <button className='btn btn-outline-success' onClick={props.onClickEdit} ><i className='fas fa-user-edit'/> Edit</button>)}
@@ -42,5 +45,11 @@ const ProfileCard = (props) => {
         </div>
     );
 };
+
+ProfileCard.defaultProps = {
+    errors: {
+        
+    }
+}
 
 export default ProfileCard;
