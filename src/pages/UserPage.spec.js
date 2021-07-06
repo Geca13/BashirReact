@@ -502,6 +502,7 @@ const setUserOneLoggedInStorage = () => {
          expect(storedUserData.displayName).toBe(
            mockSuccessUpdateUser.data.displayName
          );
+          
          expect(storedUserData.image).toBe(mockSuccessUpdateUser.data.image);
        });
      });
