@@ -1,5 +1,6 @@
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react'
+import { render, fireEvent , waitFor,
+  waitForElementToBeRemoved, } from '@testing-library/react'
 import HoaxSubmit from './HoaxSubmit'
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
@@ -54,6 +55,15 @@ describe('HoaxSubmit' , () =>{
     })
 
     describe('Interactions' , () =>{
+
+      let textArea;
+    const setupFocused = () => {
+      const rendered = setup();
+      textArea = rendered.container.querySelector('textarea');
+      fireEvent.focus(textArea);
+      return rendered;
+    };
+
       it('display three rows when focused to textarea' , () =>{
         const { container } = setup();
         const textarea = container.querySelector('textarea');
@@ -94,6 +104,59 @@ describe('HoaxSubmit' , () =>{
         const cancelButton = queryByText('Cancel')
         fireEvent.click(cancelButton);
         expect(queryByText('Cancel')).not.toBeInTheDocument();
+      });
+      it('calls postHoax with Hoax request when clicking Hoaxify' , () =>{
+        const { container, queryByText } = setup();
+        const textarea = container.querySelector('textarea');
+        fireEvent.focus(textarea);
+        
+        fireEvent.change(textarea , {target: { value: 'Test hoax content'}});
+        const hoaxifyButton = queryByText('Hoaxify')
+        apiCalls.postHoax = jest.fn().mockResolvedValue({});
+        fireEvent.click(hoaxifyButton);
+        expect(apiCalls.postHoax).toHaveBeenLastCalledWith({
+          content: 'Test hoax content'
+        });
+      });
+
+      it('returns back to not focused state after successful postHoax action',async  () =>{
+        const { queryByText } = setupFocused();
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+
+      const hoaxifyButton = queryByText('Hoaxify');
+
+      apiCalls.postHoax = jest.fn().mockResolvedValue({});
+      fireEvent.click(hoaxifyButton);
+
+      await waitFor(() => {
+        expect(queryByText('Hoaxify')).not.toBeInTheDocument();
+      });
+      });
+
+      it('clears content after successful postHoax action',async  () =>{
+        const { queryByText } = setupFocused();
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+
+      const hoaxifyButton = queryByText('Hoaxify');
+
+      apiCalls.postHoax = jest.fn().mockResolvedValue({});
+      fireEvent.click(hoaxifyButton);
+
+      await waitFor(() => {
+        expect(queryByText('Test hoax content')).not.toBeInTheDocument();
+      });
+      });
+
+      it('clears content after sclicking the cancel Button', () =>{
+        const { container ,queryByText } = setupFocused();
+        const textArea = container.querySelector('textarea');
+        fireEvent.focus(textArea)
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+
+      const cancelButton = queryByText('Cancel');
+      fireEvent.click(cancelButton);
+      expect(queryByText('Test hoax content')).not.toBeInTheDocument();
+      
       });
       
   })

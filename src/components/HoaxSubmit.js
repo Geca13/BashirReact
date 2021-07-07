@@ -1,11 +1,30 @@
 import React, { Component } from 'react'
 import ProfileImageWithDefault from './ProfileImageWithDefault'
 import { connect } from 'react-redux'
+import * as apiCalls from '../api/apiCalls'
 
  class HoaxSubmit extends Component {
 
     state = {
-        focused: false
+        focused: false,
+        content: undefined
+    }
+
+    onChangeContent = () =>{
+        const value = event.target.value;
+        this.setState({ content: value})
+    }
+
+    onClickHoaxify =()=>{
+        const body = {
+            content: this.state.content
+        }
+        apiCalls.postHoax(body).then((response) =>{
+            this.setState({
+                focused: false,
+                content: ''
+            })
+        });
     }
 
     onFocus = () =>{
@@ -16,7 +35,8 @@ import { connect } from 'react-redux'
 
     onClickCancel = () =>{
         this.setState({
-            focused: false
+            focused: false,
+            content: ''
         })
     }
    
@@ -28,9 +48,9 @@ import { connect } from 'react-redux'
                 width='32' height='32'
                 image={this.props.loggedInUser.image} />
                 <div className='flex-fill'>
-                <textarea onFocus={this.onFocus} className='form-control w-100' rows={this.state.focused ? 3 :1}/>
+                <textarea value ={this.state.content} onChange={this.onChangeContent} onFocus={this.onFocus} className='form-control w-100' rows={this.state.focused ? 3 :1}/>
                 {this.state.focused && (<div className='text-right mt-1'>
-                <button className= 'btn btn-success'>Hoaxify</button>
+                <button onClick={this.onClickHoaxify} className= 'btn btn-success'>Hoaxify</button>
                 <button onClick={this.onClickCancel} className= 'btn btn-light ml-1'><i className='fas fa-times'></i> Cancel</button>
                 </div>)}
                 </div>
