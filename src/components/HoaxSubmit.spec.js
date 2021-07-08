@@ -159,9 +159,204 @@ describe('HoaxSubmit' , () =>{
       
       });
 
+      it('disables Hoaxify button when there is postHoax api call',async  () =>{
+        const { queryByText } = setupFocused();
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
 
+      const hoaxifyButton = queryByText('Hoaxify');
+
+      const mockFunction = jest.fn().mockImplementation(()=>{
+        return new Promise((resolve, reject)=>{
+          setTimeout(()=>{
+             resolve({})
+          }, 300 )
+        })
+      })
+
+      apiCalls.postHoax = mockFunction;
+      fireEvent.click(hoaxifyButton);
+      fireEvent.click(hoaxifyButton);
+      
+        expect(mockFunction).toHaveBeenCalledTimes(1);
+     
+      });
+
+      it('disables cancel button when there is postHoax api call',async  () =>{
+        const { queryByText } = setupFocused();
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+
+      const hoaxifyButton = queryByText('Hoaxify');
+
+      const mockFunction = jest.fn().mockImplementation(()=>{
+        return new Promise((resolve, reject)=>{
+          setTimeout(()=>{
+             resolve({})
+          }, 300 )
+        })
+      })
+
+      apiCalls.postHoax = mockFunction;
+      fireEvent.click(hoaxifyButton);
+
+      const cancelButton = queryByText('Cancel');
+     
+      
+        expect(cancelButton).toBeDisabled();
+     
+      });
+    
+      it('displays spinner when there is postHoax api call',async  () =>{
+        const { queryByText } = setupFocused();
+      fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+
+      const hoaxifyButton = queryByText('Hoaxify');
+
+      const mockFunction = jest.fn().mockImplementation(()=>{
+        return new Promise((resolve, reject)=>{
+          setTimeout(()=>{
+             resolve({})
+          }, 300 )
+        })
+      })
+
+      apiCalls.postHoax = mockFunction;
+      fireEvent.click(hoaxifyButton);
+
+      expect(queryByText('Loading...')).toBeInTheDocument();
+      });
+
+      it('enables Hoaxify button when postHoax api call fails', async () => {
+        const { queryByText } = setupFocused();
+        fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+  
+        const hoaxifyButton = queryByText('Hoaxify');
+  
+        const mockFunction = jest.fn().mockRejectedValueOnce({
+          response: {
+            data: {
+              validationErrors: {
+                content: 'It must have minimum 10 and maximum 5000 characters',
+              },
+            },
+          },
+        });
+  
+        apiCalls.postHoax = mockFunction;
+        fireEvent.click(hoaxifyButton);
+  
+        await waitFor(() => {
+          expect(queryByText('Hoaxify')).not.toBeDisabled();
+        });
+      });
+
+      it('enables Cancel button when postHoax api call fails', async () => {
+        const { queryByText } = setupFocused();
+        fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+  
+        const hoaxifyButton = queryByText('Hoaxify');
+  
+        const mockFunction = jest.fn().mockRejectedValueOnce({
+          response: {
+            data: {
+              validationErrors: {
+                content: 'It must have minimum 10 and maximum 5000 characters',
+              },
+            },
+          },
+        });
+  
+        apiCalls.postHoax = mockFunction;
+        fireEvent.click(hoaxifyButton);
+  
+        await waitFor(() => {
+          expect(queryByText('Cancel')).not.toBeDisabled();
+        });
+      });
+
+      it('displays validation error for content', async () => {
+        const { queryByText } = setupFocused();
+        fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+  
+        const hoaxifyButton = queryByText('Hoaxify');
+  
+        const mockFunction = jest.fn().mockRejectedValueOnce({
+          response: {
+            data: {
+              validationErrors: {
+                content: 'It must have minimum 10 and maximum 5000 characters',
+              },
+            },
+          },
+        });
+  
+        apiCalls.postHoax = mockFunction;
+        fireEvent.click(hoaxifyButton);
+  
+        await waitFor(() => {
+          expect(
+            queryByText('It must have minimum 10 and maximum 5000 characters')
+          ).toBeInTheDocument();
+        });
+      });
+      it('clears validation error after clicking cancel', async () => {
+        const { queryByText, findByText } = setupFocused();
+        fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+  
+        const hoaxifyButton = queryByText('Hoaxify');
+  
+        const mockFunction = jest.fn().mockRejectedValueOnce({
+          response: {
+            data: {
+              validationErrors: {
+                content: 'It must have minimum 10 and maximum 5000 characters',
+              },
+            },
+          },
+        });
+  
+        apiCalls.postHoax = mockFunction;
+        fireEvent.click(hoaxifyButton);
+  
+        const error = await findByText(
+          'It must have minimum 10 and maximum 5000 characters'
+        );
+  
+        fireEvent.click(queryByText('Cancel'));
+  
+        expect(error).not.toBeInTheDocument();
+      });
+
+      it('clears validation error after content is changed', async () => {
+        const { queryByText, findByText } = setupFocused();
+        fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
+  
+        const hoaxifyButton = queryByText('Hoaxify');
+  
+        const mockFunction = jest.fn().mockRejectedValueOnce({
+          response: {
+            data: {
+              validationErrors: {
+                content: 'It must have minimum 10 and maximum 5000 characters',
+              },
+            },
+          },
+        });
+  
+        apiCalls.postHoax = mockFunction;
+        fireEvent.click(hoaxifyButton);
+        const error = await findByText(
+          'It must have minimum 10 and maximum 5000 characters'
+        );
+  
+        fireEvent.change(textArea, {
+          target: { value: 'Test hoax content updated' },
+        });
+  
+        expect(error).not.toBeInTheDocument();
+      });
       
       
   })
 
 })
+console.error =() =>{};
