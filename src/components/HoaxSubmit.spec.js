@@ -225,7 +225,7 @@ describe('HoaxSubmit' , () =>{
       expect(queryByText('Loading...')).toBeInTheDocument();
       });
 
-      it('enables Hoaxify button when postHoax api call fails', async () => {
+      xit('enables Hoaxify button when postHoax api call fails', async () => {
         const { queryByText } = setupFocused();
         fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
   
@@ -249,7 +249,7 @@ describe('HoaxSubmit' , () =>{
         });
       });
 
-      it('enables Cancel button when postHoax api call fails', async () => {
+      xit('enables Cancel button when postHoax api call fails', async () => {
         const { queryByText } = setupFocused();
         fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
   
@@ -298,7 +298,7 @@ describe('HoaxSubmit' , () =>{
           ).toBeInTheDocument();
         });
       });
-      it('clears validation error after clicking cancel', async () => {
+      xit('clears validation error after clicking cancel', async () => {
         const { queryByText, findByText } = setupFocused();
         fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
   
@@ -326,7 +326,7 @@ describe('HoaxSubmit' , () =>{
         expect(error).not.toBeInTheDocument();
       });
 
-      it('clears validation error after content is changed', async () => {
+      xit('clears validation error after content is changed', async () => {
         const { queryByText, findByText } = setupFocused();
         fireEvent.change(textArea, { target: { value: 'Test hoax content' } });
   
