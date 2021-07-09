@@ -1,6 +1,7 @@
 import React from 'react'
 import { render } from '@testing-library/react'
 import HoaxView from './HoaxView'
+import { MemoryRouter } from 'react-router-dom';
 
 const setup = (hoax = hoaxWithoutAttachment, state = loggedInStateUser1) => {
     const oneMinute = 60 * 1000;
@@ -35,6 +36,11 @@ describe('HoaxView', ()=>{
         it('displays relative time', () => {
            const { queryByText } = setup();
            expect(queryByText('1 minute ago')).toBeInTheDocument();
+         });
+         it('has link to user page' ,()=>{
+           const { container } = setup();
+           const anchor = container.querySelector('a');
+           expect(anchor.getAttribute('href')).toBe('/user1');
          });
     })
 })

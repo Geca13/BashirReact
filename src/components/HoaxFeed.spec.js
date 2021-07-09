@@ -2,9 +2,14 @@ import React from 'react'
 import { render ,fireEvent , waitFor, waitForElementToBeRemoved, } from '@testing-library/react'
 import HoaxFeed from './HoaxFeed'
 import * as apiCalls from '../api/apiCalls'
+import { MemoryRouter } from 'react-router-dom'
 
 const setup = (props) =>{
-    return render(<HoaxFeed {...props} />)
+    return render(
+        <MemoryRouter>
+            <HoaxFeed {...props} />
+        </MemoryRouter>
+    )
 }
 
 const mockEmptyResponse = {
@@ -33,6 +38,29 @@ const mockSuccessGetHoaxesSinglePage = {
         last: true,
         size: 5,
         totalPages: 1
+    }
+}
+
+const mockSuccessGetHoaxesFirstOfMultyPage = {
+    data: {
+        content: [
+            {
+                id: 10,
+                content: 'this is the latest hoax',
+                date: 1561294668539,
+                user: {
+                    id: 1,
+                    username: 'user1',
+                    displayName: 'display1',
+                    image: 'profile1.png'
+                }
+            }
+        ],
+        number: 0,
+        first: true,
+        last: false,
+        size: 5,
+        totalPages: 2
     }
 }
 
@@ -91,6 +119,15 @@ describe('HoaxFeed', ()=> {
             const { findByText } = setup();
             const hoaxContent = await findByText('This is the latest hoax');
             expect(hoaxContent).toBeInTheDocument();
+        });
+
+        it('displays Load More when there are next pages', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultyPage);
+            const { findByText } = setup();
+            const loadMore = await findByText('Load More');
+            expect(loadMore).toBeInTheDocument();
         });
     });
 
