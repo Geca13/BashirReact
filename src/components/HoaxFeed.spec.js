@@ -64,6 +64,29 @@ const mockSuccessGetHoaxesFirstOfMultyPage = {
     }
 }
 
+const mockSuccessGetHoaxesLastOfMultiPage = {
+    data: {
+      content: [
+        {
+          id: 1,
+          content: 'This is the oldest hoax',
+          date: 1561294668539,
+          user: {
+            id: 1,
+            username: 'user1',
+            displayName: 'display1',
+            image: 'profile1.png',
+          },
+        },
+      ],
+      number: 0,
+      first: true,
+      last: true,
+      size: 5,
+      totalPages: 2,
+    },
+  };
+
 describe('HoaxFeed', ()=> {
     describe('Lifecycle', ()=> {
     
@@ -133,9 +156,19 @@ describe('HoaxFeed', ()=> {
 
     describe('Interactions', ()=> {
     
-        it('HoaxFeed', ()=> {
-    
-        })
+        it('calls loadOldHoaxes with hoax id when clicking Load More', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadOldHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesLastOfMultiPage);
+            const { findByText } = setup();
+            const loadMore = await findByText('Load More');
+            fireEvent.click(loadMore);
+            const firstParam = apiCalls.loadOldHoaxes.mock.calls[0][0];
+            expect(firstParam).toBe(9);
+          });
     });
 
 });

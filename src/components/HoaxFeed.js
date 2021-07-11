@@ -18,6 +18,15 @@ class HoaxFeed extends Component {
             this.setState({page: response.data, isLoadingHoaxes: false})
         });
     }
+
+    onClickLoadMore = () =>{
+        const hoaxes = this.state.page.content;
+        if(hoaxes.length === 0){
+return;
+        }
+        const hoaxAtBottom = hoaxes[hoaxes.length - 1];
+        apiCalls.loadOldHoaxes(hoaxAtBottom);
+    }
     render() {
         if(this.state.isLoadingHoaxes) {
             return (
