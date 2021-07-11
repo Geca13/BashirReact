@@ -87,6 +87,8 @@ const mockSuccessGetHoaxesLastOfMultiPage = {
     },
   };
 
+
+
 describe('HoaxFeed', ()=> {
     describe('Lifecycle', ()=> {
     
