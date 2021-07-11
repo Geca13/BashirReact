@@ -171,6 +171,49 @@ describe('HoaxFeed', ()=> {
             const firstParam = apiCalls.loadOldHoaxes.mock.calls[0][0];
             expect(firstParam).toBe(9);
           });
+
+          it('calls loadOldHoaxes with hoax id and username when clicking Load More when rendered with user property', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadOldHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesLastOfMultiPage);
+            const { findByText } = setup({ user: 'user1' });
+            const loadMore = await findByText('Load More');
+            fireEvent.click(loadMore);
+            expect(apiCalls.loadOldHoaxes).toHaveBeenCalledWith(9, 'user1');
+          });
+
+          it('displays loaded old hoax when loadOldHoaxes api call success', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadOldHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesLastOfMultiPage);
+            const { findByText } = setup();
+            const loadMore = await findByText('Load More');
+            fireEvent.click(loadMore);
+            const oldHoax = await findByText('This is the oldest hoax');
+            expect(oldHoax).toBeInTheDocument();
+          });
+          it('hides Load More when loadOldHoaxes api call returns last page', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadOldHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesLastOfMultiPage);
+            const { findByText } = setup();
+            const loadMore = await findByText('Load More');
+            fireEvent.click(loadMore);
+            await waitFor(() => {
+              expect(loadMore).not.toBeInTheDocument();
+            });
+          });
     });
 
 });
+
+console.error = () =>{}

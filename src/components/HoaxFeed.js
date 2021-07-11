@@ -25,7 +25,12 @@ class HoaxFeed extends Component {
 return;
         }
         const hoaxAtBottom = hoaxes[hoaxes.length - 1];
-        apiCalls.loadOldHoaxes(hoaxAtBottom);
+        apiCalls.loadOldHoaxes(hoaxAtBottom.id, this.props.user)
+        .then(response =>{
+            const page = {...this.state.page}
+            page.content = [...page.content, ...response.data.content];
+            page.last = response.data.last;
+        });
     }
     render() {
         if(this.state.isLoadingHoaxes) {
@@ -46,7 +51,9 @@ return;
                     return <HoaxView key={hoax.id} hoax = {hoax} />
                 })}
                 {this.state.page.last === false && (
-                    <div className='card card-header text-center'>
+                    <div className='card card-header text-center'
+                    onClick={this.onClickLoadMore}
+                    style={{cursor: 'pointer'}}>
                         Load More
                     </div>
                 )}
