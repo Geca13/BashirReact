@@ -9,14 +9,23 @@ class HoaxFeed extends Component {
         page: {
             content: []
         },
-        isLoadingHoaxes: false
+        isLoadingHoaxes: false,
+        newHoaxCount: 0
     }
 
     componentDidMount(){
         this.setState({isLoadingHoaxes: true})
         apiCalls.loadHoaxes(this.props.user).then(response => {
-            this.setState({page: response.data, isLoadingHoaxes: false})
+            this.setState({page: response.data, isLoadingHoaxes: false}, 
+               () =>{
+                this.counter = setInterval(this.checkCount, 3000);
+               } 
+                );
         });
+    }
+
+    componentWillUnmount(){
+        clearInterval(this.counter);
     }
 
     onClickLoadMore = () =>{
@@ -32,13 +41,28 @@ return;
             page.last = response.data.last;
         });
     }
+
+    checkCount = () =>{
+        const hoaxes = this.state.page.content;
+        let topHoaxId = 0;
+        if(hoaxes.length > 0){
+          topHoaxId= hoaxes[0].id;
+         }
+         const topHoax = hoaxes[0];
+         apiCalls.loadNewHoaxCount(topHoaxId, this.props.user)
+         .then(response =>{
+             this.setState({ newHoaxCount: response.data.count})
+         });
+    }
+
     render() {
+        
         if(this.state.isLoadingHoaxes) {
             return (
                 <Spinner/>
             )
         }
-        if(this.state.page.content.length === 0) {
+        if(this.state.page.content.length === 0 && this.state.newHoaxCount === 0) {
             return (
                 <div className='card card-header text-center'>
                     There are no hoaxes
@@ -47,6 +71,11 @@ return;
         }
         return (
             <div className='card card-header text-center'>
+                {this.state.newHoaxCount > 0 && (
+                    <div className="car card-header text-center">
+                        {this.state.newHoaxCount === 1 ? 'There is 1 new hoax' : `There are ${this.state.newHoaxCount} new hoaxes`}
+                    </div>)
+                }
                 {this.state.page.content.map((hoax) => {
                     return <HoaxView key={hoax.id} hoax = {hoax} />
                 })}

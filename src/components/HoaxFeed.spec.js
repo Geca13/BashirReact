@@ -108,6 +108,103 @@ describe('HoaxFeed', ()=> {
             const parameter = apiCalls.loadHoaxes.mock.calls[0][0];
             expect(parameter).toBeUndefined();
          })
+         it('calls loadNewHoaxCount with topHoax id', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest
+            .fn()
+            .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText } = setup();
+          await findByText('This is the latest hoax');
+          runTimer();
+          await findByText('There is 1 new hoax');
+          const firstParam = apiCalls.loadNewHoaxCount.mock.calls[0][0];
+          expect(firstParam).toBe(10);
+          useRealIntervals();
+        });
+
+        it('calls loadNewHoaxCount with topHoax id and username when rendered with user property', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest
+            .fn()
+            .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText } = setup({ user: 'user1' });
+          await findByText('This is the latest hoax');
+          runTimer();
+          await findByText('There is 1 new hoax');
+          expect(apiCalls.loadNewHoaxCount).toHaveBeenCalledWith(10, 'user1');
+          useRealIntervals();
+        });
+
+        it('displays new hoax count as 1 after loadNewHoaxCount success', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest
+            .fn()
+            .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText } = setup({ user: 'user1' });
+          await findByText('This is the latest hoax');
+          runTimer();
+          const newHoaxCount = await findByText('There is 1 new hoax');
+          expect(newHoaxCount).toBeInTheDocument();
+          useRealIntervals();
+        });
+        it('displays new hoax count constantly', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest
+            .fn()
+            .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText } = setup({ user: 'user1' });
+          await findByText('This is the latest hoax');
+          runTimer();
+          await findByText('There is 1 new hoax');
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 2 } });
+          runTimer();
+          const newHoaxCount = await findByText('There are 2 new hoaxes');
+          expect(newHoaxCount).toBeInTheDocument();
+          useRealIntervals();
+        });
+        it('does not call loadNewHoaxCount after component is unmounted', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest
+            .fn()
+            .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText, unmount } = setup({ user: 'user1' });
+          await findByText('This is the latest hoax');
+          runTimer();
+          await findByText('There is 1 new hoax');
+          unmount();
+          expect(apiCalls.loadNewHoaxCount).toHaveBeenCalledTimes(1);
+          useRealIntervals();
+        });
+        it('displays new hoax count as 1 after loadNewHoaxCount success when user does not have hoaxes initially', async () => {
+          useFakeIntervals();
+          apiCalls.loadHoaxes = jest.fn().mockResolvedValue(mockEmptyResponse);
+          apiCalls.loadNewHoaxCount = jest
+            .fn()
+            .mockResolvedValue({ data: { count: 1 } });
+          const { findByText } = setup({ user: 'user1' });
+          await findByText('There are no hoaxes');
+          runTimer();
+          const newHoaxCount = await findByText('There is 1 new hoax');
+          expect(newHoaxCount).toBeInTheDocument();
+          useRealIntervals();
+        });
     });
 
     describe('Layout', ()=> {
