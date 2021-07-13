@@ -168,5 +168,15 @@ describe('loadNewHoaxCount', () => {
   });
 });
 
+describe('postHoaxFile', () => {
+  it('calls /api/1.0/hoaxes/upload', () => {
+    const mockPostHoaxFile = jest.fn();
+    axios.post = mockPostHoaxFile;
+    apiCalls.postHoaxFile();
+    const path = mockPostHoaxFile.mock.calls[0][0];
+    expect(path).toBe('/api/1.0/hoaxes/upload');
+  });
+});
+
 
 })

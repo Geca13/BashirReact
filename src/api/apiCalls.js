@@ -58,6 +58,10 @@ export const loadNewHoaxCount = (hoaxId , username) => {
      return axios.get(path);
 }
 
+export const postHoaxFile = (file) => {
+  return axios.post('/api/1.0/hoaxes/upload', file);
+}
+
 
 
 
