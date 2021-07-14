@@ -1,52 +1,38 @@
-import React from 'react';
+import React, { useState , useEffect} from 'react';
 import Input from '../components/Input';
 import ButtonWithProgress from '../components/ButtonWithProgress';
 import { connect } from 'react-redux'
 import * as authActions from '../redux/authActions'
-export class UserSignUpPage extends React.Component {
 
-    state = {
+
+export const UserSignUpPage = (props) =>{
+
+    const [form , setForm] = useState({
         displayName:'',
         username:'',
         password:'',
-        passwordRepeat:'',
-        pendingApiCall: false,
-        errors: {},
-        passwordRepeatConfirmed: true
-    };
+        passwordRepeat:''
+    })
 
-    onChangeDisplayName = (event) => {
-      const value = event.target.value;
-      const errors = { ...this.state.errors };
-      delete errors.displayName;
-      this.setState({displayName:value, errors})
-    };
+    const [errors , setErrors] = useState({})
+    const [pendingApiCall, setPendingApiCall] = useState(false);
 
-    onChangeUsername = (event) => {
-      const value = event.target.value;
-      const errors = { ...this.state.errors };
-      delete errors.username;
-      this.setState({username:value, errors})
-    };
 
-    onChangePassword = (event) => {
-      const value = event.target.value;
-      const passwordRepeatConfirmed = this.state.passwordRepeat === value;
-      const errors = { ...this.state.errors };
-      delete errors.password;
-      errors.passwordRepeat = passwordRepeatConfirmed ? '' : 'Does not match to password'
-      this.setState({password:value, passwordRepeatConfirmed, errors})
-    };
+   
 
-    onChangePasswordRepeat = (event) => {
-      const value = event.target.value;
-      const passwordRepeatConfirmed = this.state.password === value;
-      const errors = { ...this.state.errors };
-      errors.passwordRepeat = passwordRepeatConfirmed ? '' : 'Does not match to password'
-      this.setState({passwordRepeat:value, passwordRepeatConfirmed , errors})
-    };
+    const onChange = (event) =>{
+        const value = event.target.value;
+        const name = event.target.name;
+        const errors = { ...this.state.errors };
+        delete errors [name];
+        this.setState({
+            [name]: value,
+            errors
+        })
+    }
 
-    onClickSignup = () => {
+  
+    const onClickSignup = () => {
       const user = {
           username: this.state.username,
           displayName: this.state.displayName,
@@ -73,47 +59,60 @@ export class UserSignUpPage extends React.Component {
         
     }
 
-    render() {
+    
+
+        let passwordRepeatError;
+        const {password , passwordRepeat} = this.state;
+        if(password || passwordRepeat) {
+            passwordRepeatError = password  === passwordRepeat ? '' : 'Does not match to password'
+        }
         return (
             <div className='container'>
                 <h1 className='text-center'>Sign Up</h1>
                 <div className='col-12 mb-3'>
                     
-                    <Input label='Display Name' placeholder='Your display name'
+                    <Input
+                     name='DisplayName'
+                    label='Display Name' placeholder='Your display name'
                      value={this.state.displayName}
-                     onChange={this.onChangeDisplayName}
+                     onChange={onChange}
                      hasError={this.state.errors.displayName && true}
                      error={this.state.errors.displayName}
                       />
                       
                 </div>
                 <div className='col-12 mb-3'>
-                    <Input label='Username' placeholder='Your username'
+                    <Input
+                    name='username' label='Username' placeholder='Your username'
                     value={this.state.username}
-                     onChange={this.onChangeUsername}
+                     onChange={onChange}
                      hasError={this.state.errors.username && true}
                      error={this.state.errors.username}
                     />
                 </div>
                 <div className='col-12 mb-3'>
-                    <Input label='Password' type='password' placeholder='Your password'
+                    <Input 
+                    name='password'
+                    label='Password' type='password' placeholder='Your password'
                     value={this.state.password}
-                     onChange={this.onChangePassword}
+                     onChange={onChange}
                      hasError={this.state.errors.password && true}
                      error={this.state.errors.password}
                       />
                 </div>
                 <div className='col-12 mb-3'>
-                    <Input label='Password Repeat' type='password' placeholder='Repeat your password'
+                    <Input
+                    name='passwordRepeat'
+                    label='Password Repeat' type='password' placeholder='Repeat your password'
                     value={this.state.passwordRepeat}
-                     onChange={this.onChangePasswordRepeat}
-                     hasError={this.state.errors.passwordRepeat && true}
-                     error={this.state.errors.passwordRepeat}
+                     onChange={onChange}
+                     hasError={passwordRepeatError && true}
+                     error={passwordRepeatError}
                       />
                 </div>
                 <div className='text-center'>
-                    <ButtonWithProgress onClick={this.onClickSignup}
-                     disabled={this.state.pendingApiCall || !this.state.passwordRepeatConfirmed}
+                    <ButtonWithProgress onClick={onClickSignup}
+                     disabled={this.state.pendingApiCall || passwordRepeatError ? true : false}
                     pendingApiCall={this.state.pendingApiCall}
                     text='Sign Up'
                     >
@@ -121,7 +120,7 @@ export class UserSignUpPage extends React.Component {
                 </div>
             </div>
         );
-    }
+    
 }
 
 UserSignUpPage.defaultProps = {
