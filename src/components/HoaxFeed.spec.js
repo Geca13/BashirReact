@@ -3,6 +3,9 @@ import { render ,fireEvent , waitFor, waitForElementToBeRemoved, } from '@testin
 import HoaxFeed from './HoaxFeed'
 import * as apiCalls from '../api/apiCalls'
 import { MemoryRouter } from 'react-router-dom'
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import authReducer from '../redux/authReducer';
 
 const originalSetInterval = window.setInterval;
 const originalClearInterval = window.clearInterval;
@@ -32,13 +35,16 @@ const runTimer = () => {
   timedFunction && timedFunction();
 };
 
-const setup = (props) =>{
-    return render(
-        <MemoryRouter>
-            <HoaxFeed {...props} />
-        </MemoryRouter>
-    )
-}
+const setup = (props, state = loggedInStateUser1) => {
+  const store = createStore(authReducer, state);
+  return render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <HoaxFeed {...props} />
+      </MemoryRouter>
+    </Provider>
+  );
+};
 
 const mockSuccessGetHoaxesMiddleOfMultiPage = {
   data: {
@@ -663,6 +669,188 @@ describe('HoaxFeed', ()=> {
               expect(queryByText('There is 1 new hoax')).toBeInTheDocument();
             });
             useRealIntervals();
+          });
+
+          it('displays modal when clicking delete on hoax', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+            const { queryByTestId, container, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+      
+            const modalRootDiv = queryByTestId('modal-root');
+            expect(modalRootDiv).toHaveClass('modal fade d-block show');
+          });
+          it('hides modal when clicking cancel', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+            const { queryByTestId, container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+      
+            fireEvent.click(queryByText('Cancel'));
+      
+            const modalRootDiv = queryByTestId('modal-root');
+            expect(modalRootDiv).not.toHaveClass('d-block show');
+          });
+          it('displays modal with information about the action', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+      
+            const message = queryByText(
+              `Are you sure to delete 'This is the latest hoax'?`
+            );
+            expect(message).toBeInTheDocument();
+          });
+          it('calls deleteHoax api with hoax id when delete button is clicked on modal', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockResolvedValue({});
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+            expect(apiCalls.deleteHoax).toHaveBeenCalledWith(10);
+          });
+          it('hides modal after successful deleteHoax api call', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockResolvedValue({});
+            const { container, queryByText, queryByTestId, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+            await waitFor(() => {
+              const modalRootDiv = queryByTestId('modal-root');
+              expect(modalRootDiv).not.toHaveClass('d-block show');
+            });
+          });
+          it('removes the deleted hoax from document after successful deleteHoax api call', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockResolvedValue({});
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+            await waitFor(() => {
+              const deletedHoaxContent = queryByText('This is the latest hoax');
+              expect(deletedHoaxContent).not.toBeInTheDocument();
+            });
+          });
+          it('disables Modal Buttons when api call in progress', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockImplementation(() => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  resolve({});
+                }, 300);
+              });
+            });
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+      
+            expect(deleteHoaxButton).toBeDisabled();
+            expect(queryByText('Cancel')).toBeDisabled();
+          });
+          it('displays spinner when api call in progress', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockImplementation(() => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  resolve({});
+                }, 300);
+              });
+            });
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+            const spinner = queryByText('Loading...');
+            expect(spinner).toBeInTheDocument();
+          });
+          it('hides spinner when api call finishes', async () => {
+            apiCalls.loadHoaxes = jest
+              .fn()
+              .mockResolvedValue(mockSuccessGetHoaxesFirstOfMultiPage);
+            apiCalls.loadNewHoaxCount = jest
+              .fn()
+              .mockResolvedValue({ data: { count: 1 } });
+      
+            apiCalls.deleteHoax = jest.fn().mockImplementation(() => {
+              return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                  resolve({});
+                }, 300);
+              });
+            });
+            const { container, queryByText, findByText } = setup();
+            await findByText('This is the latest hoax');
+            const deleteButton = container.querySelectorAll('button')[0];
+            fireEvent.click(deleteButton);
+            const deleteHoaxButton = queryByText('Delete Hoax');
+            fireEvent.click(deleteHoaxButton);
+            await waitFor(() => {
+              const spinner = queryByText('Loading...');
+              expect(spinner).not.toBeInTheDocument();
+            });
           });
           
     });

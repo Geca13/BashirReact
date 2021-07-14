@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import * as apiCalls from '../api/apiCalls'
 import Spinner from './Spinner';
 import HoaxView from './HoaxView';
+import Modal from './Modal';
 
 class HoaxFeed extends Component {
 
@@ -12,7 +13,8 @@ class HoaxFeed extends Component {
         isLoadingHoaxes: false,
         newHoaxCount: 0,
         isLoadingOldHoaxes: false,
-        isLoadingNewHoaxes: false
+        isLoadingNewHoaxes: false,
+        isDeletingHoax: false
     }
 
     componentDidMount(){
@@ -77,6 +79,22 @@ return;
         });
     }
 
+    onClickDeleteHoax = (hoax) => {
+        this.setState({ hoaxToBeDeleted: hoax})
+    }
+
+    onClickModalCancel = () => {
+        this.setState({hoaxToBeDeleted: undefined})
+    }
+    onClickModalOk = () => {
+        this.setState({isDeletingHoax: true})
+        apiCalls.deleteHoax(this.state.onClickDeleteHoax.id).then((response)=>{
+            const page = { ...this.state.page}
+            page.content = page.content.filter(hoax => hoax.id !== this.state.hoaxToBeDeleted.id)
+            this.setState({hoaxToBeDeleted: undefined, page})
+        })
+    }
+
     render() {
         
         if(this.state.isLoadingHoaxes) {
@@ -101,7 +119,7 @@ return;
                     </div>)
                 }
                 {this.state.page.content.map((hoax) => {
-                    return <HoaxView key={hoax.id} hoax = {hoax} />
+                    return <HoaxView key={hoax.id} hoax = {hoax} onClickDelete={() => this.onClickDeleteHoax(hoax)} />
                 })}
                 {this.state.page.last === false && (
                     <div className='card card-header text-center'
@@ -110,6 +128,13 @@ return;
                        { this.state.isLoadingHoaxes ? <Spinner/> : 'Load More' }
                     </div>
                 )}
+                <Modal visible = {this.state.modalVisible && true}
+                 onClickCancel={this.onClickModalCancel}
+                 body={this.state.hoaxToBeDeleted && `Are you sure to delete '${this.state.hoaxToBeDeleted.content}'`}
+                 title='Delete!'
+                 okButton='Delete Hoax'
+                 onClickOk={this.onClickModalOk}
+                 pendingApiCall={this.state.isDeletingHoax} />
             </div>
         );
     }
