@@ -1,21 +1,19 @@
-import React, { Component } from 'react';
+import React, { useState , useEffect , useReducer } from 'react';
 import * as apiCalls from '../api/apiCalls'
 import Spinner from './Spinner';
 import HoaxView from './HoaxView';
 import Modal from './Modal';
 
-class HoaxFeed extends Component {
-
-    state = {
-        page: {
-            content: []
-        },
-        isLoadingHoaxes: false,
-        newHoaxCount: 0,
-        isLoadingOldHoaxes: false,
-        isLoadingNewHoaxes: false,
-        isDeletingHoax: false
-    }
+const HoaxFeed = (props) => {
+    const [page, setPage] = useState({content: []});
+    const [isLoadingHoaxes , setLoadingHoaxes] = useState(false);
+    const [isLoadingOldHoaxes , setLoadingOldHoaxes] = useState(false);
+    const [isLoadingNewHoaxes , setLoadingNewHoaxes] = useState(false);
+    const [isDeletingHoax, setDeletingHoax] = useState(false);
+    const [newHoaxCount , setNewHoaxCount] = useState(0);
+    const [hoaxToBeDeleted , setHoaxToBeDeleted] = useState();
+   /*
+    
 
     componentDidMount(){
         this.setState({isLoadingHoaxes: true})
@@ -31,113 +29,119 @@ class HoaxFeed extends Component {
     componentWillUnmount(){
         clearInterval(this.counter);
     }
-
-    onClickLoadMore = () =>{
-        const hoaxes = this.state.page.content;
+    */
+    const onClickLoadMore = () =>{
+        const hoaxes = page.content;
         if(hoaxes.length === 0){
 return;
         }
         const hoaxAtBottom = hoaxes[hoaxes.length - 1];
-        this.setState({isLoadingOldHoaxes: true})
-        apiCalls.loadOldHoaxes(hoaxAtBottom.id, this.props.user)
+        setLoadingOldHoaxes(true);
+        apiCalls.loadOldHoaxes(hoaxAtBottom.id, props.user)
         .then(response =>{
-            const page = {...this.state.page}
-            page.content = [...page.content, ...response.data.content];
-            page.last = response.data.last;
+            
+            setPage(previousPage =>({
+                ...previousPage,
+                last: response.data.last,
+                content: [...previousPage.content, ...response.data.content]
+            }));
+            setLoadingOldHoaxes(false);
             this.setState({ page , isLoadingOldHoaxes: false})
         }).catch(error =>{
-            this.setState({ isLoadingHoaxes: false})
+            setLoadingHoaxes(false);
         });
     }
 
-    checkCount = () =>{
-        const hoaxes = this.state.page.content;
+    const checkCount = () =>{
+        const hoaxes = page.content;
         let topHoaxId = 0;
         if(hoaxes.length > 0){
           topHoaxId= hoaxes[0].id;
          }
          const topHoax = hoaxes[0];
-         apiCalls.loadNewHoaxCount(topHoaxId, this.props.user)
+         apiCalls.loadNewHoaxCount(topHoaxId, props.user)
          .then(response =>{
-             this.setState({ newHoaxCount: response.data.count})
+             setNewHoaxCount(response.data.count);
          });
     };
-    onClickLoadNew = () =>{
-        const hoaxes = this.state.page.content;
+    const onClickLoadNew = () =>{
+        const hoaxes = page.content;
         let topHoaxId = 0;
         if(hoaxes.length > 0){
           topHoaxId= hoaxes[0].id;
          }
-         this.setState({isLoadingNewHoaxes: true})
-        apiCalls.loadNewHoaxes(topHoaxId, this.props.user)
+         setLoadingNewHoaxes(true);
+        apiCalls.loadNewHoaxes(topHoaxId, props.user)
         .then(response => {
-            const page = {...this.state.page}
-            page.content = {...response.data, ...page.content}
-            this.setState({ page , newHoaxCount: 0, isLoadingNewHoaxes:false});
+            setPage(previousPage =>({
+                ...previousPage,
+                last: response.data.last,
+                content: [...response.data , ...previousPage.content]
+            }));
+            setNewHoaxCount(0);
+            setLoadingNewHoaxes(false);
         }).catch(error => {
+            setLoadingNewHoaxes(false);
             this.setState({ isLoadingNewHoaxes: false})
         });
     }
 
-    onClickDeleteHoax = (hoax) => {
-        this.setState({ hoaxToBeDeleted: hoax})
-    }
-
-    onClickModalCancel = () => {
-        this.setState({hoaxToBeDeleted: undefined})
-    }
-    onClickModalOk = () => {
-        this.setState({isDeletingHoax: true})
-        apiCalls.deleteHoax(this.state.onClickDeleteHoax.id).then((response)=>{
-            const page = { ...this.state.page}
-            page.content = page.content.filter(hoax => hoax.id !== this.state.hoaxToBeDeleted.id)
-            this.setState({hoaxToBeDeleted: undefined, page})
+    
+    const onClickModalOk = () => {
+        setDeletingHoax(true)
+        apiCalls.deleteHoax(onClickDeleteHoax.id).then((response)=>{
+            setPage(previousPage =>({
+                ...previousPage,
+                content: previousPage.content.filter(hoax => hoax.id !== hoaxToBeDeleted.id)
+            }));
+            setDeletingHoax(false);
+            setHoaxToBeDeleted();
         })
     }
 
-    render() {
+   
         
-        if(this.state.isLoadingHoaxes) {
+        if(isLoadingHoaxes) {
             return (
                 <Spinner/>
             )
         }
-        if(this.state.page.content.length === 0 && this.state.newHoaxCount === 0) {
+        if(page.content.length === 0 && newHoaxCount === 0) {
             return (
                 <div className='card card-header text-center'>
                     There are no hoaxes
                 </div>
             );
         }
-        const newHoaxCountMessage = this.state.newHoaxCount === 1 ? 'There is 1 new hoax' : `There are ${this.state.newHoaxCount} new hoaxes`
+        const newHoaxCountMessage = newHoaxCount === 1 ? 'There is 1 new hoax' : `There are ${newHoaxCount} new hoaxes`
         return (
             <div className='card card-header text-center'>
-                {this.state.newHoaxCount > 0 && (
-                    <div className="car card-header text-center" onClick={!this.state.isLoadingNewHoaxes && this.onClickLoadNew}
-                     style={{cursor: this.state.isLoadingNewHoaxes ? '' : 'pointer'}}>
-                        {this.state.isLoadingNewHoaxes ? <Spinner/> : newHoaxCountMessage}
+                {newHoaxCount > 0 && (
+                    <div className="car card-header text-center" onClick={!isLoadingNewHoaxes && onClickLoadNew}
+                     style={{cursor: isLoadingNewHoaxes ? '' : 'pointer'}}>
+                        {isLoadingNewHoaxes ? <Spinner/> : newHoaxCountMessage}
                     </div>)
                 }
-                {this.state.page.content.map((hoax) => {
-                    return <HoaxView key={hoax.id} hoax = {hoax} onClickDelete={() => this.onClickDeleteHoax(hoax)} />
+                {page.content.map((hoax) => {
+                    return <HoaxView key={hoax.id} hoax = {hoax} onClickDelete={() => setHoaxToBeDeleted(hoax)} />
                 })}
-                {this.state.page.last === false && (
+                {page.last === false && (
                     <div className='card card-header text-center'
-                    onClick={!this.isLoadingOldHoaxes && this.onClickLoadMore}
+                    onClick={!isLoadingOldHoaxes && onClickLoadMore}
                     style={{cursor: this.isLoadingOldHoaxes ? 'not-allowed' : 'pointer'}}>
-                       { this.state.isLoadingHoaxes ? <Spinner/> : 'Load More' }
+                       { isLoadingHoaxes ? <Spinner/> : 'Load More' }
                     </div>
                 )}
-                <Modal visible = {this.state.modalVisible && true}
-                 onClickCancel={this.onClickModalCancel}
-                 body={this.state.hoaxToBeDeleted && `Are you sure to delete '${this.state.hoaxToBeDeleted.content}'`}
+                <Modal visible = {modalVisible && true}
+                 onClickCancel={()=> setHoaxToBeDeleted()}
+                 body={hoaxToBeDeleted && `Are you sure to delete '${hoaxToBeDeleted.content}'`}
                  title='Delete!'
                  okButton='Delete Hoax'
-                 onClickOk={this.onClickModalOk}
-                 pendingApiCall={this.state.isDeletingHoax} />
+                 onClickOk={onClickModalOk}
+                 pendingApiCall={isDeletingHoax} />
             </div>
         );
-    }
+    
 }
 
 export default HoaxFeed;
