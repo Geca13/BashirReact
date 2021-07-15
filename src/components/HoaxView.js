@@ -1,17 +1,24 @@
-import React, { Component } from 'react';
+import React, { useRef } from 'react';
 import ProfileImageWithDefault from './ProfileImageWithDefault';
 import { format } from 'timeago.js';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux'
+import useClickTracker from '../shared/useClickTracker'
 
-class HoaxView extends Component {
-    render() {
-        const { hoax , onClickDelete} = this.props;
+const HoaxView = (props) => {
+        const actionArea = useRef();
+        const dropdownVisible = useClickTracker(actionArea);
+        const { hoax , onClickDelete} = props;
         const { user, date } = hoax;
         const { username , displayName , image} = user;
         const relativeDate = format(date);
         const attachmentImageVisible = hoax.attachment && hoax.attachment.fileType.startsWith('image');
-        const ownedByLoggedInUser = user.id === this.props.loggedInUser.id;
+        const ownedByLoggedInUser = user.id === props.loggedInUser.id;
+        let dropDownClass = 'p-0 shadow dropdown-menu';
+        if(dropdownVisible) {
+            dropDownClass += ' show';
+        }
+
         return (
             <div className='card p-1'>
                 <div className='d-flex'>
@@ -23,9 +30,18 @@ class HoaxView extends Component {
                    <span className='text-black-50'> - </span>
                    <span className='text-black-50'>{relativeDate}</span>
                   </div>
-                  {ownedByLoggedInUser && <button className='btn btn-outline-danger btn-sm' onClick={onClickDelete}>
-                      <i className='far fa-trash-alt' />
-                  </button>}
+                  {ownedByLoggedInUser && (
+                      <div className='dropdown'>
+                          <span className='btn btn-sm gtn-light dropdown-toggle' data-testid='hoax-actions' ref={actionArea}></span>
+                          <div className={dropDownClass} data-testid='hoax-action-dropdown'>
+                  <button
+                   className='btn btn-outline-danger btn-sm btn-block text-left' onClick={onClickDelete}
+                   >
+                      <i className='far fa-trash-alt' />Delete
+                  </button>
+                  </div>
+                  </div>
+                  )}
                 </div>
                 <div className='pl-5'>
                   {hoax.content}
@@ -36,7 +52,6 @@ class HoaxView extends Component {
                 
             </div>
         );
-    }
 }
 const mapStateToProps = state =>{
    return {

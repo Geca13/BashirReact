@@ -369,7 +369,7 @@ describe('App' , () =>{
    expect(axiosAutherization).toBe(expectedAuthorization);
   });
 
-  xit('removes axios authorization header when user logout', async () => {
+  it('removes axios authorization header when user logout', async () => {
     setUserOneLoggedInStorage();
     const { queryByText } = setup('/');
     fireEvent.click(queryByText('Logout'));
