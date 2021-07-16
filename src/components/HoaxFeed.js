@@ -17,8 +17,9 @@ const HoaxFeed = (props) => {
     const loadHoaxes = () => {
       setLoadingHoaxes(true);
       apiCalls.loadHoaxes(props.user).then((response) => {
-        setLoadingHoaxes(false);
+        
         setPage(response.data);
+        setLoadingHoaxes(false);
       });
     };
     loadHoaxes();
@@ -167,3 +168,5 @@ const HoaxFeed = (props) => {
 };
 
 export default HoaxFeed;
+
+console.error = () =>{}
